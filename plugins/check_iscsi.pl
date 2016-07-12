@@ -36,6 +36,14 @@ if ($opts{'c'}) {
     }
 }
 
+my $iscsid=qx(/sbin/chkconfig --list iscsid 2>/dev/null);
+my $iscsid_exit_code = ($? >> 8);
+
+if ( $iscsid_exit_code ) {
+    print "OK: iscsid service is not registered, hence not proceeding.\n";
+    exit 0;
+}
+
 if (! -e $ISCSI_ADM_CMD ){
     print "WARNING: $ISCSI_ADM_CMD not found\n";
     exit 1;
