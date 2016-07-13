@@ -36,12 +36,23 @@ if ($opts{'c'}) {
     }
 }
 
-my $iscsid=qx(/sbin/chkconfig --list iscsid 2>/dev/null);
-my $iscsid_exit_code = ($? >> 8);
+my $centos_release=qx(lsb_release -r | awk {' print \$2 '});
+chomp $centos_release;
+print "Working on Centos -$centos_release- \n" if $DEBUG;
 
-if ( $iscsid_exit_code ) {
-    print "OK: iscsid service is not registered, hence not proceeding.\n";
-    exit 0;
+my $iscsid;
+my $iscsid_exit_code;
+if ( $centos_release =~ /^6/ ) {
+    $iscsid=qx(/sbin/chkconfig --list iscsid 2>/dev/null);
+    $iscsid_exit_code = ($? >> 8);
+}
+elsif ( $centos_release =~ /^7/ ) {
+    $iscsid=qx(systemctl is-enabled iscsi);
+    $iscsid_exit_code = ($? >> 8);
+}
+else {
+    print "WARNING: Zombie error, Centos Version: $centos_release\n";
+    exit 1;
 }
 
 if (! -e $ISCSI_ADM_CMD ){
